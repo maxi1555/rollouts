@@ -23,7 +23,7 @@ spec:
             metadata:
               labels:
                 app: {{ include "web-application.internal.fullname" . }}-baseline
-          - name: {{ include "web-application.internal.fullname" . }}-baseline
+          - name: {{ include "web-application.internal.fullname" . }}-preview
             specRef: canary
             # Selector and metadata are overwritten to be something different from the rollout's
             # spec.selector. This allows the preview stack to be reachable through a different
