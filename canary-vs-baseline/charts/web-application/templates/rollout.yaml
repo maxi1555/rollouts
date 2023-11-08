@@ -11,6 +11,7 @@ spec:
       # The initial step starts an experiment that runs a single pod ReplicaSet using the new pod spec
       # When the experiment is terminated, the rollout will progress through rest of the canary steps.
       - experiment:
+          duration: 1m          
           templates:
           - name: {{ include "web-application.internal.fullname" . }}-baseline
             specRef: stable
