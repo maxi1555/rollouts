@@ -1,0 +1,15 @@
+{{- if .Values.expose.enabled -}}
+apiVersion: gateway.kyma-project.io/v1beta1
+kind: APIRule
+metadata:
+  name: {{ include "web-application.internal.fullname" . }}
+  labels: {{- include "web-application.internal.labels" . | nindent 4 }}
+spec:
+  gateway: {{ .Values.expose.gateway }}
+  host: {{ include "web-application.internal.exposeHost" . }}
+  service:
+    name: {{ include "web-application.internal.fullname" . }}
+    port: {{ .Values.port }}
+  rules:
+    {{- toYaml .Values.expose.rules | nindent 6 }}
+{{- end }}

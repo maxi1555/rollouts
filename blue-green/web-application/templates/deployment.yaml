@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels: {{- include "web-application.internal.labels" . | nindent 4 }}
+  name: {{ include "web-application.internal.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{- include "web-application.internal.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "web-application.internal.selectorLabels" . | nindent 8 }}
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/{{ include "web-application.internal.name" . }}: runtime/default
+    spec:
+      {{- if (include "web-application.internal.imagePullSecretName" .) }}
+      imagePullSecrets:
+        - name: {{ include "web-application.internal.imagePullSecretName" . }}
+      {{- end }}
+      automountServiceAccountToken: false
+      serviceAccountName: {{ tpl (.Values.serviceAccountName | default (include "web-application.internal.fullname" .)) $ }}
+      containers:
+      - image: {{ include "web-application.internal.imageName" . }}
+        name: {{ include "web-application.internal.name" . }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.port }}
+          protocol: TCP
+        envFrom:
+        {{- $envFromVars := (include "web-application.internal.processEnvFrom" . | fromJson) }}
+        {{- if not (eq (len $envFromVars.vars) 0) }}
+        {{- $envFromVars.vars | toYaml | nindent 8}}
+        {{- end }}
+        env:
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        - name: PORT
+          value: {{ .Values.port | quote }}
+        - name: TMPDIR
+          value: /tmp
+        {{- $envVars := (include "web-application.internal.processEnv" $ | fromJson) }}
+        {{- if not (eq (len $envVars.vars) 0) }}
+        {{- $envVars.vars | toYaml | nindent 8}}
+        {{- end }}
+        {{- if not $envVars.appName}}
+        - name: APPLICATION_NAME
+          value: {{ include "web-application.internal.fullname" . }}
+        {{- end }}
+        {{- if not $envVars.appURI}}
+        - name: APPLICATION_URI
+          value: {{ include "web-application.internal.applicationUri" . }}
+        {{- end }}
+        livenessProbe:
+        {{- if .Values.health.liveness.path }}
+          httpGet:
+            path: {{ .Values.health.liveness.path }}
+            port: http
+        {{- else }}
+          tcpSocket:
+            port: {{ .Values.port }}
+        {{- end }}
+        readinessProbe:
+        {{- if .Values.health.readiness.path }}
+          httpGet:
+            path: {{ .Values.health.readiness.path }}
+            port: http
+        {{- else }}
+          tcpSocket:
+            port: {{ .Values.port }}
+        {{- end }}
+        startupProbe:
+        {{- if .Values.health.liveness.path }}
+          httpGet:
+            path: {{ .Values.health.liveness.path }}
+            port: http
+        {{- else }}
+          tcpSocket:
+            port: {{ .Values.port }}
+        {{- end }}
+          failureThreshold: {{ div (add1  .Values.startupTimeoutSeconds) 2 }}
+          periodSeconds: 2
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: bindings-root
+          mountPath: /bindings
+        {{- range $volume := .Values.additionalVolumes }}
+        - name: {{ $volume.name | quote }}
+          {{- toYaml $volume.volumeMount  | nindent 10 }}
+        {{- end }}
+        {{- include "web-application.internal.serviceMounts" . | nindent 8 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: {{ .Values.readOnlyRootFilesystem | default false }}
+          seccompProfile:
+            type: RuntimeDefault
+      restartPolicy: Always
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      securityContext:
+        runAsNonRoot: false
+      topologySpreadConstraints:
+      {{- range $constraint := .Values.availability.topologySpreadConstraints }}
+      - labelSelector:
+          matchLabels: {{- include "web-application.internal.selectorLabels" $ | nindent 12 }}
+        maxSkew: {{ $constraint.maxSkew }}
+        topologyKey: {{ $constraint.topologyKey }}
+        whenUnsatisfiable: {{ $constraint.whenUnsatisfiable }}
+      {{- end }}
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: bindings-root
+      {{- include "web-application.internal.serviceVolumes" . | nindent 6 }}
+      {{- range $volume := .Values.additionalVolumes }}
+      -
+        {{- tpl (omit $volume "volumeMount" | toYaml) $ | nindent 8 }}
+      {{- end }}

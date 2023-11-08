@@ -1,0 +1,12 @@
+{{- printf "Thank you for installing %s version %s." .Chart.Name .Chart.Version }}
+
+{{ printf "The release %s is installed in namespace %s." .Release.Name .Release.Namespace }}
+
+Your services are available at:
+{{- $root := . }}
+{{- range $name := include "cap.deploymentNames" . | split ";" }}
+  {{- $deployment := (get $root.Values $name) }}
+  {{- $ := merge (dict "name" $name "deployment" $deployment) $root }}
+  {{- $url := include "cap.deploymentHostFull" $ }}
+  {{ printf "%s - https://%s" $name $url }}
+{{- end }}
