@@ -12,7 +12,7 @@ spec:
     failureLimit: 3
     provider:
       prometheus:
-        address: svc/prometheus-operated:9090
+        address: svc/monitoring-prometheus:9090
         query: |
           sum(irate(
             istio_requests_total{reporter="source",destination_service=~"canary-with-analysis-srv",response_code!~"5.*"}[1m]
