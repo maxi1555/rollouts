@@ -3,8 +3,6 @@ kind: AnalysisTemplate
 metadata:
   name: success-rate
 spec:
-  args:
-  - name: service-name
   metrics:
   - name: success-rate
     interval: 1m
@@ -17,8 +15,8 @@ spec:
         address: http://prometheus.example.com:9090
         query: |
           sum(irate(
-            istio_requests_total{reporter="source",destination_service=~"{{args.service-name}}",response_code!~"5.*"}[5m]
+            istio_requests_total{reporter="source",destination_service=~"canary-with-analysis-srv",response_code!~"5.*"}[1m]
           )) /
           sum(irate(
-            istio_requests_total{reporter="source",destination_service=~"{{args.service-name}}"}[5m]
+            istio_requests_total{reporter="source",destination_service=~"canary-with-analysis-srv"}[1m]
           ))
