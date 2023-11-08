@@ -13,7 +13,7 @@ spec:
         startingStep: 2 # delay starting analysis run until setWeight: 40%
         args:
         - name: service-name
-          value: {{ include "web-application.internal.fullname" . }}
+          value: canary-with-analysis-srv
       steps:
       - setWeight: 20
       - pause: {duration: 2m}
