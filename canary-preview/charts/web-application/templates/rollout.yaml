@@ -12,6 +12,7 @@ spec:
       # When the experiment is terminated, the rollout will progress through rest of the canary steps.
       - experiment:
           templates:
+          - duration: 1m
           - name: {{ include "web-application.internal.fullname" . }}-preview
             specRef: canary
             # Selector and metadata are overwritten to be something different from the rollout's
