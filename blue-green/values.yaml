@@ -1,5 +1,5 @@
 global:
-  domain: c-44453a1.kyma.ondemand.com
+  domain: c-16217fc.kyma.ondemand.com
   imagePullSecret:
      name: dockerconfigjson-github-com
 srv:
