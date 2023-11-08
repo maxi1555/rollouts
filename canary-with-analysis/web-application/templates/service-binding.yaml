@@ -1,0 +1,31 @@
+{{- $bindings := omit .Values.bindings "defaultProperties" -}}
+{{- range $name, $params := $bindings }}
+{{- $defaultProperties := deepCopy $.Values.bindings.defaultProperties -}}
+{{- $mergedParams := (deepCopy $params | mergeOverwrite $defaultProperties ) -}}
+{{- if not $mergedParams.fromSecret }}
+---
+apiVersion: services.cloud.sap.com/v1
+kind: ServiceBinding
+metadata:
+  name: {{ include "web-application.internal.bindingName" (dict "root" $ "name" $name) }}
+  labels: {{- include "web-application.internal.labels" $ | nindent 4 }}
+spec:
+  serviceInstanceName: {{include "web-application.internal.serviceInstanceName" (dict "binding" $mergedParams "root" $) }}
+  secretKey: credentials
+  {{- if $mergedParams.externalName }}
+  externalName: {{ $mergedParams.externalName }}
+  {{- end }}
+  {{- if $mergedParams.secretName }}
+  secretName: {{ tpl $mergedParams.secretName $ }}
+  {{- end }}
+  {{- if $mergedParams.parameters }}
+  parameters: {{ $mergedParams.parameters | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if $mergedParams.parametersFrom }}
+  parametersFrom: {{ tpl ($mergedParams.parametersFrom | toYaml) $ | nindent 4 }}
+  {{- end }}
+  {{- if $mergedParams.credentialsRotationPolicy }}
+  credentialsRotationPolicy: {{ $mergedParams.credentialsRotationPolicy | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

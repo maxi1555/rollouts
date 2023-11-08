@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "web-application.internal.fullname" . }}
+  labels: {{- include "web-application.internal.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: {{ .Values.availability.podDisruptionBudget.maxUnavailable }}
+  selector:
+    matchLabels: {{- include "web-application.internal.selectorLabels" . | nindent 6 }}
