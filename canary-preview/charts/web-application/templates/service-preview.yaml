@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "web-application.internal.fullname" . }}-canary
+  name: {{ include "web-application.internal.fullname" . }}-preview
   labels: {{- include "web-application.internal.labels" . | nindent 4 }}
 spec:
   ports:
@@ -9,4 +9,4 @@ spec:
       targetPort: {{ .Values.port }}
       protocol: TCP
   selector: 
-    app: {{ include "web-application.internal.fullname" . }}-canary
+    app: {{ include "web-application.internal.fullname" . }}-preview

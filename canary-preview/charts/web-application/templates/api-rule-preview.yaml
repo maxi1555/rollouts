@@ -2,13 +2,13 @@
 apiVersion: gateway.kyma-project.io/v1beta1
 kind: APIRule
 metadata:
-  name: {{ include "web-application.internal.fullname" . }}-canary
+  name: {{ include "web-application.internal.fullname" . }}-preview
   labels: {{- include "web-application.internal.labels" . | nindent 4 }}
 spec:
   gateway: {{ .Values.expose.gateway }}
-  host: {{ include "web-application.internal.exposeHost" . }}-canary
+  host: {{ include "web-application.internal.exposeHost" . }}-preview
   service:
-    name: {{ include "web-application.internal.fullname" . }}-canary
+    name: {{ include "web-application.internal.fullname" . }}-preview
     port: {{ .Values.port }}
   rules:
     {{- toYaml .Values.expose.rules | nindent 6 }}

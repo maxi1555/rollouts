@@ -12,17 +12,27 @@ spec:
       # When the experiment is terminated, the rollout will progress through rest of the canary steps.
       - experiment:
           templates:
-          - name: {{ include "web-application.internal.fullname" . }}-canary
+          - name: {{ include "web-application.internal.fullname" . }}-preview
             specRef: canary
             # Selector and metadata are overwritten to be something different from the rollout's
             # spec.selector. This allows the preview stack to be reachable through a different
             # service without receiving production traffic.
             selector:
               matchLabels:
-                app: {{ include "web-application.internal.fullname" . }}-canary
+                app: {{ include "web-application.internal.fullname" . }}-preview
             metadata:
               labels:
-                app: {{ include "web-application.internal.fullname" . }}-canary
+                app: {{ include "web-application.internal.fullname" . }}-preview
+      - setWeight: 20
+      # The following pause step will pause the rollout indefinitely until manually resumed.
+      # Rollouts can be manually resumed by running `kubectl argo rollouts promote ROLLOUT`
+      - pause: {}
+      - setWeight: 40
+      - pause: {duration: 40s}
+      - setWeight: 60
+      - pause: {duration: 20s}
+      - setWeight: 80
+      - pause: {duration: 20s}
   #replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
