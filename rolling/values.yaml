@@ -15,7 +15,7 @@ srv:
       memory: 500M
     requests:
       ephemeral-storage: 1G
-      cpu: 103m
+      cpu: 102m
       memory: 200M
   health:
     liveness:
