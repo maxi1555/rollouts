@@ -8,7 +8,7 @@ srv:
   image:
     registry: ghcr.io
     repository: maxi1555/test3
-    tag: '19'
+    tag: '20'
   resources:
     limits:
       ephemeral-storage: 1G
